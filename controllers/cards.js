@@ -25,14 +25,15 @@ module.exports.createCard = (req, res) => {
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
-      if (!card) {
+      if (card) {
+        res.send({ data: card });
+      } else {
         res.status(NOT_FOUND).send({ message: 'Запрашиваемая карточка не найдена' });
       }
-      res.send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      if (err.name === 'CastError') {
+        res.status(NOT_FOUND).send({ message: 'Запрашиваемая карточка не найдена' });
       } else {
         res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }
@@ -42,13 +43,14 @@ module.exports.deleteCard = (req, res) => {
 module.exports.addLike = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
     .then((card) => {
-      if (!card) {
+      if (card) {
+        res.send({ data: card });
+      } else {
         res.status(NOT_FOUND).send({ message: 'Запрашиваемая карточка не найдена' });
       }
-      res.send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       } else {
         res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
@@ -59,13 +61,14 @@ module.exports.addLike = (req, res) => {
 module.exports.removeLike = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .then((card) => {
-      if (!card) {
+      if (card) {
+        res.send({ data: card });
+      } else {
         res.status(NOT_FOUND).send({ message: 'Запрашиваемая карточка не найдена' });
       }
-      res.send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       } else {
         res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
