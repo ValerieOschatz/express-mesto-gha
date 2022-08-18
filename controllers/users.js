@@ -18,7 +18,7 @@ module.exports.getUser = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(NOT_FOUND).send({ message: 'Запрашиваемый пользователь не найден' });
+        res.status(BAD_REQUEST).send({ message: 'Запрашиваемый пользователь не найден' });
       } else {
         res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
       }

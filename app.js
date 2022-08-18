@@ -2,10 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
-const usersRoutes = require('./routes/users');
-const cardsRoutes = require('./routes/cards');
-
 const { PORT = 3000 } = process.env;
+
+const { NOT_FOUND } = require('./utils/errorCodes');
 
 const app = express();
 
@@ -23,8 +22,12 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/users', usersRoutes);
-app.use('/cards', cardsRoutes);
+app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
+
+app.use('*', (req, res) => {
+  res.status(NOT_FOUND).send({ message: 'Страница не найдена' });
+});
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
