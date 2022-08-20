@@ -14,7 +14,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(routes);
+app.use(express.json(), routes);
 
 app.use('*', (req, res) => {
   res.status(NOT_FOUND).send({ message: 'Страница не найдена' });

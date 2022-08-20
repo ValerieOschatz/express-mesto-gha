@@ -1,7 +1,7 @@
 {
   "name": "express-mesto-gha",
   "version": "1.0.0",
-  "description": "[![Tests for sprint 13](https://github.com/ValerieOschatz/express-mesto-gha/actions/workflows/tests-13-sprint.yml/badge.svg)](https://github.com/ValerieOschatz/express-mesto-gha/actions/workflows/tests-13-sprint.yml)\r [![Tests for sprint 14](https://github.com/ValerieOschatz/express-mesto-gha/actions/workflows/tests-14-sprint.yml/badge.svg)](https://github.com/ValerieOschatz/express-mesto-gha/actions/workflows/tests-14-sprint.yml)\r # Проект Mesto фронтенд + бэкенд",
+  "description": "Проект Mesto фронтенд + бэкенд",
   "main": "app.js",
   "scripts": {
     "lint": "npx eslint .",
@@ -20,7 +20,6 @@
   },
   "homepage": "https://github.com/ValerieOschatz/express-mesto-gha#readme",
   "dependencies": {
-    "body-parser": "^1.20.0",
     "express": "^4.18.1",
     "mongoose": "^6.5.2"
   },

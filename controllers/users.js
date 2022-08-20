@@ -38,7 +38,7 @@ const createUser = async (req, res) => {
     return res.status(CREATED).send({ user });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      return res.status(BAD_REQUEST).send({ message: `Переданы некорректные данные${err.errors.name ? err.errors.name : ''}${err.errors.about ? err.errors.about : ''}${err.errors.avatar ? err.errors.avatar : ''}` });
     }
     return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
   }
@@ -58,7 +58,7 @@ const updateUser = async (req, res) => {
     return res.status(OK).send({ user });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      return res.status(BAD_REQUEST).send({ message: `Переданы некорректные данные${err.errors.name ? err.errors.name : ''}${err.errors.about ? err.errors.about : ''}` });
     }
     return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
   }
@@ -78,7 +78,7 @@ const updateAvatar = async (req, res) => {
     return res.status(OK).send({ user });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      return res.status(BAD_REQUEST).send({ message: `Переданы некорректные данные${err.errors.avatar ? err.errors.avatar : ''}` });
     }
     return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
   }
