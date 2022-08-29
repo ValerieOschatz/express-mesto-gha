@@ -112,7 +112,7 @@ const login = async (req, res) => {
       'some-secret-key',
       { expiresIn: '7d' },
     );
-    return res.send({ token });
+    return res.cookie('jwt', token, { httpOnly: true }).send({ token });
   } catch (err) {
     return res.status(401).send({ message: 'Указан неверный логин или пароль' });
   }
