@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { isEmail } = require('validator');
 
 const userSchema = new mongoose.Schema({
@@ -32,5 +33,39 @@ const userSchema = new mongoose.Schema({
     required: [true, ', поле password обязательное'],
   },
 });
+
+// userSchema.statics.findUserByCredentials = function (email, password) {
+//   return this.findOne({ email })
+//     .then((user) => {
+//       if (!user) {
+//         return Promise.reject(new Error('Неправильные почта или пароль'));
+//       }
+//       return bcrypt.compare(password, user.password)
+//         .then((matched) => {
+//           if (!matched) {
+//             return Promise.reject(new Error('Неправильные почта или пароль'));
+//           }
+//           return user;
+//         });
+//     });
+// };
+
+// eslint-disable-next-line func-names
+userSchema.statics.findUserByCredentials = async function (email, password) {
+  try {
+    const user = await this.findOne({ email });
+    if (!user) {
+      return Promise.reject(new Error('Неправильные почта или пароль'));
+    }
+    const matched = await bcrypt.compare(password, user.password);
+    if (!matched) {
+      return Promise.reject(new Error('Неправильные почта или пароль'));
+    }
+    return user;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    return console.log(err);
+  }
+};
 
 module.exports = mongoose.model('user', userSchema);
