@@ -34,6 +34,21 @@ const getUser = async (req, res) => {
   }
 };
 
+const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(NOT_FOUND).send({ message: 'Запрашиваемый пользователь не найден' });
+    }
+    return res.status(OK).send({ user });
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+    }
+    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+  }
+};
+
 const createUser = async (req, res) => {
   try {
     const {
@@ -112,7 +127,7 @@ const login = async (req, res) => {
       'some-secret-key',
       { expiresIn: '7d' },
     );
-    return res.cookie('jwt', token, { httpOnly: true }).send({ token });
+    return res.cookie('jwt', token, { httpOnly: true, maxAge: 3600000 * 24 * 7 }).status(OK).send({ token });
   } catch (err) {
     return res.status(401).send({ message: 'Указан неверный логин или пароль' });
   }
@@ -121,6 +136,7 @@ const login = async (req, res) => {
 module.exports = {
   getUsers,
   getUser,
+  getCurrentUser,
   createUser,
   updateUser,
   updateAvatar,

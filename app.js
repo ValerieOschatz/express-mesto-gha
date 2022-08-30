@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
 
 const { PORT = 3000 } = process.env;
 const { NOT_FOUND } = require('./utils/errorCodes');
@@ -9,17 +10,12 @@ const auth = require('./middlewares/auth');
 
 const app = express();
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '62fa97229bd2fc5be93d353f',
-  };
-  next();
-});
+app.use(cookieParser());
 
-app.post('/signin', login);
-app.post('/signup', createUser);
-app.use(auth);
-app.use(express.json(), routes);
+app.post('/signin', express.json(), login);
+app.post('/signup', express.json(), createUser);
+
+app.use(express.json(), auth, routes);
 
 app.use('*', (req, res) => {
   res.status(NOT_FOUND).send({ message: 'Страница не найдена' });
