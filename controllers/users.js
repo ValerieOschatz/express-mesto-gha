@@ -1,55 +1,65 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/user');
 
 const {
-  BAD_REQUEST,
-  NOT_FOUND,
-  INTERNAL_SERVER_ERROR,
   OK,
   CREATED,
 } = require('../utils/errorCodes');
 
-const getUsers = async (req, res) => {
+const NotFoundError = require('../errors/NotFoundError');
+const BadRequestError = require('../errors/BadRequestError');
+const ConflictError = require('../errors/ConflictError');
+const UnauthorizedError = require('../errors/UnauthorizedError');
+
+const secretKey = crypto.randomBytes(32).toString('hex');
+
+const getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
     return res.status(OK).send({ users });
   } catch (err) {
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+    next(err);
+    return null;
   }
 };
 
-const getUser = async (req, res) => {
+const getUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) {
-      return res.status(NOT_FOUND).send({ message: 'Запрашиваемый пользователь не найден' });
+      throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
     return res.status(OK).send({ user });
   } catch (err) {
     if (err.name === 'CastError') {
-      return res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
+      return null;
     }
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+    next(err);
+    return null;
   }
 };
 
-const getCurrentUser = async (req, res) => {
+const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
-      return res.status(NOT_FOUND).send({ message: 'Запрашиваемый пользователь не найден' });
+      throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
     return res.status(OK).send({ user });
   } catch (err) {
     if (err.name === 'CastError') {
-      return res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      next(new BadRequestError('Переданы некорректные данные'));
+      return null;
     }
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+    next(err);
+    return null;
   }
 };
 
-const createUser = async (req, res) => {
+const createUser = async (req, res, next) => {
   try {
     const {
       name,
@@ -61,6 +71,7 @@ const createUser = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
+    // eslint-disable-next-line no-unused-vars
     const user = await User.create({
       name,
       about,
@@ -69,16 +80,29 @@ const createUser = async (req, res) => {
       password: hash,
     });
 
-    return res.status(CREATED).send({ user });
+    const visibleUser = {
+      name,
+      about,
+      avatar,
+      email,
+    };
+
+    return res.status(CREATED).send({ visibleUser });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(BAD_REQUEST).send({ message: `Переданы некорректные данные${err.errors.name ? err.errors.name : ''}${err.errors.about ? err.errors.about : ''}${err.errors.avatar ? err.errors.avatar : ''}${err.errors.email ? err.errors.email : ''}` });
+      next(new BadRequestError(`Переданы некорректные данные${err.errors.name ? err.errors.name : ''}${err.errors.about ? err.errors.about : ''}${err.errors.avatar ? err.errors.avatar : ''}${err.errors.email ? err.errors.email : ''}`));
+      return null;
     }
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+    if (err.code === 11000) {
+      next(new ConflictError('Пользователь с этим email уже существует'));
+      return null;
+    }
+    next(err);
+    return null;
   }
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   try {
     const { name, about } = req.body;
     const user = await User.findByIdAndUpdate(
@@ -87,18 +111,20 @@ const updateUser = async (req, res) => {
       { new: true, runValidators: true },
     );
     if (!user) {
-      return res.status(NOT_FOUND).send({ message: 'Запрашиваемый пользователь не найден' });
+      throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
     return res.status(OK).send({ user });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(BAD_REQUEST).send({ message: `Переданы некорректные данные${err.errors.name ? err.errors.name : ''}${err.errors.about ? err.errors.about : ''}` });
+      next(new BadRequestError(`Переданы некорректные данные${err.errors.name ? err.errors.name : ''}${err.errors.about ? err.errors.about : ''}`));
+      return null;
     }
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+    next(err);
+    return null;
   }
 };
 
-const updateAvatar = async (req, res) => {
+const updateAvatar = async (req, res, next) => {
   try {
     const { avatar } = req.body;
     const user = await User.findByIdAndUpdate(
@@ -107,29 +133,32 @@ const updateAvatar = async (req, res) => {
       { new: true, runValidators: true },
     );
     if (!user) {
-      return res.status(NOT_FOUND).send({ message: 'Запрашиваемый пользователь не найден' });
+      throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
     return res.status(OK).send({ user });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(BAD_REQUEST).send({ message: `Переданы некорректные данные${err.errors.avatar ? err.errors.avatar : ''}` });
+      next(new BadRequestError(`Переданы некорректные данные${err.errors.avatar ? err.errors.avatar : ''}`));
+      return null;
     }
-    return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+    next(err);
+    return null;
   }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findUserByCredentials(email, password);
     const token = jwt.sign(
       { _id: user._id },
-      'some-secret-key',
+      secretKey,
       { expiresIn: '7d' },
     );
     return res.cookie('jwt', token, { httpOnly: true, maxAge: 3600000 * 24 * 7 }).status(OK).send({ token });
   } catch (err) {
-    return res.status(401).send({ message: 'Указан неверный логин или пароль' });
+    next(new UnauthorizedError('Указан неверный логин или пароль'));
+    return null;
   }
 };
 
@@ -141,4 +170,5 @@ module.exports = {
   updateUser,
   updateAvatar,
   login,
+  secretKey,
 };

@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 
 const { PORT = 3000 } = process.env;
-const { NOT_FOUND } = require('./utils/errorCodes');
 const routes = require('./routes');
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const NotFoundError = require('./errors/NotFoundError');
 
 const app = express();
 
@@ -17,8 +17,21 @@ app.post('/signup', express.json(), createUser);
 
 app.use(express.json(), auth, routes);
 
-app.use('*', (req, res) => {
-  res.status(NOT_FOUND).send({ message: 'Страница не найдена' });
+app.use('*', (req, res, next) => {
+  next(new NotFoundError('Страница не найдена'));
+});
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
 });
 
 async function main() {

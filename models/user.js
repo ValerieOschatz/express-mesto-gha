@@ -31,13 +31,14 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, ', поле password обязательное'],
+    select: false,
   },
 });
 
 // eslint-disable-next-line func-names
 userSchema.statics.findUserByCredentials = async function (email, password) {
   try {
-    const user = await this.findOne({ email });
+    const user = await this.findOne({ email }).select('+password');
     if (!user) {
       return Promise.reject(new Error('Неправильные почта или пароль'));
     }
