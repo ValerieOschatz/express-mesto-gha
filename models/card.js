@@ -10,6 +10,10 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: [true, ', поле link обязательное'],
+    validate: {
+      validator: (v) => /https?:\/\/(www\.)?[\w-.]+\.[a-z]{2,3}[\w-.~:/?#[\]@!$&'()*+,;=]*#?/.test(v),
+      message: ', введите адрес ссылки',
+    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
