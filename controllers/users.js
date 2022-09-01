@@ -71,7 +71,6 @@ const createUser = async (req, res, next) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    // eslint-disable-next-line no-unused-vars
     const user = await User.create({
       name,
       about,
@@ -81,10 +80,10 @@ const createUser = async (req, res, next) => {
     });
 
     const visibleUser = {
-      name,
-      about,
-      avatar,
-      email,
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
     };
 
     return res.status(CREATED).send({ visibleUser });

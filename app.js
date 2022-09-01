@@ -1,14 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
-const { celebrate, Joi } = require('celebrate');
+const { celebrate, Joi, errors } = require('celebrate');
 
 const { PORT = 3000 } = process.env;
 const routes = require('./routes');
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const NotFoundError = require('./errors/NotFoundError');
-const INTERNAL_SERVER_ERROR = require('./utils/errorCodes');
 
 const app = express();
 
@@ -37,14 +36,16 @@ app.use('*', (req, res, next) => {
   next(new NotFoundError('Страница не найдена'));
 });
 
+app.use(errors());
+
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  const { statusCode = INTERNAL_SERVER_ERROR, message } = err;
+  const { statusCode = 500, message } = err;
 
   res
     .status(statusCode)
     .send({
-      message: statusCode === INTERNAL_SERVER_ERROR
+      message: statusCode === 500
         ? 'На сервере произошла ошибка'
         : message,
     });
