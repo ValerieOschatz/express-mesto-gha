@@ -3,25 +3,20 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/user');
 
-const {
-  OK,
-  CREATED,
-} = require('../utils/errorCodes');
+const { CREATED } = require('../utils/data');
 
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
-const UnauthorizedError = require('../errors/UnauthorizedError');
 
 const secretKey = crypto.randomBytes(32).toString('hex');
 
 const getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
-    return res.status(OK).send({ users });
+    return res.send({ users });
   } catch (err) {
-    next(err);
-    return null;
+    return next(err);
   }
 };
 
@@ -31,14 +26,12 @@ const getUser = async (req, res, next) => {
     if (!user) {
       throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
-    return res.status(OK).send({ user });
+    return res.send({ user });
   } catch (err) {
     if (err.name === 'CastError') {
-      next(new BadRequestError('Переданы некорректные данные'));
-      return null;
+      return next(new BadRequestError('Переданы некорректные данные'));
     }
-    next(err);
-    return null;
+    return next(err);
   }
 };
 
@@ -48,14 +41,9 @@ const getCurrentUser = async (req, res, next) => {
     if (!user) {
       throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
-    return res.status(OK).send({ user });
+    return res.send({ user });
   } catch (err) {
-    if (err.name === 'CastError') {
-      next(new BadRequestError('Переданы некорректные данные'));
-      return null;
-    }
-    next(err);
-    return null;
+    return next(err);
   }
 };
 
@@ -89,15 +77,12 @@ const createUser = async (req, res, next) => {
     return res.status(CREATED).send({ visibleUser });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new BadRequestError(`Переданы некорректные данные${err.errors.name ? err.errors.name : ''}${err.errors.about ? err.errors.about : ''}${err.errors.avatar ? err.errors.avatar : ''}${err.errors.email ? err.errors.email : ''}`));
-      return null;
+      return next(new BadRequestError('Переданы некорректные данные'));
     }
     if (err.code === 11000) {
-      next(new ConflictError('Пользователь с этим email уже существует'));
-      return null;
+      return next(new ConflictError('Пользователь с этим email уже существует'));
     }
-    next(err);
-    return null;
+    return next(err);
   }
 };
 
@@ -112,14 +97,12 @@ const updateUser = async (req, res, next) => {
     if (!user) {
       throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
-    return res.status(OK).send({ user });
+    return res.send({ user });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new BadRequestError(`Переданы некорректные данные${err.errors.name ? err.errors.name : ''}${err.errors.about ? err.errors.about : ''}`));
-      return null;
+      return next(new BadRequestError('Переданы некорректные данные'));
     }
-    next(err);
-    return null;
+    return next(err);
   }
 };
 
@@ -134,14 +117,12 @@ const updateAvatar = async (req, res, next) => {
     if (!user) {
       throw new NotFoundError('Запрашиваемый пользователь не найден');
     }
-    return res.status(OK).send({ user });
+    return res.send({ user });
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new BadRequestError(`Переданы некорректные данные${err.errors.avatar ? err.errors.avatar : ''}`));
-      return null;
+      return next(new BadRequestError('Переданы некорректные данные'));
     }
-    next(err);
-    return null;
+    return next(err);
   }
 };
 
@@ -154,10 +135,17 @@ const login = async (req, res, next) => {
       secretKey,
       { expiresIn: '7d' },
     );
-    return res.cookie('jwt', token, { httpOnly: true, maxAge: 3600000 * 24 * 7 }).status(OK).send({ token });
+    return res.cookie('jwt', token, { httpOnly: true, maxAge: 3600000 * 24 * 7 }).send({ token });
   } catch (err) {
-    next(new UnauthorizedError('Указан неверный логин или пароль'));
-    return null;
+    return next(err);
+  }
+};
+
+const logout = (req, res, next) => {
+  try {
+    return res.clearCookie('jwt').send({ message: 'Выход' });
+  } catch (err) {
+    return next(err);
   }
 };
 
@@ -169,5 +157,6 @@ module.exports = {
   updateUser,
   updateAvatar,
   login,
+  logout,
   secretKey,
 };
