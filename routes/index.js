@@ -1,5 +1,4 @@
 const express = require('express');
-const { errors } = require('celebrate');
 
 const {
   createUser,
@@ -29,21 +28,6 @@ routes.get('/signout', logout);
 
 routes.use('*', (req, res, next) => {
   next(new NotFoundError('Страница не найдена'));
-});
-
-routes.use(errors());
-
-// eslint-disable-next-line no-unused-vars
-routes.use((err, req, res, next) => {
-  const { statusCode = 500, message } = err;
-
-  res
-    .status(statusCode)
-    .send({
-      message: statusCode === 500
-        ? 'На сервере произошла ошибка'
-        : message,
-    });
 });
 
 module.exports = routes;
