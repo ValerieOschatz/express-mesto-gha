@@ -25,3 +25,11 @@ API проекта Mesto (приложение для хранения и про
 * Node.js
 * Express
 * MongoDB
+
+
+### Локальный запуск проекта
+
+`npm i` — установка зависимостей  
+`mongod` — запуск mongodDB  
+`npm run start` — запуск сервера  
+`npm run dev` — запуск сервера с hot-reload  
